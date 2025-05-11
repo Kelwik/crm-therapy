@@ -20,10 +20,19 @@ const supabase = createClient(
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [patients, setPatients] = useState([]);
 
   useEffect(() => {
     checkUser();
+    getPatients();
   }, []);
+
+  async function getPatients() {
+    const res = await fetch('/api/patients');
+    const data = await res.json();
+    console.log(data);
+    setPatients(data);
+  }
 
   async function checkUser() {
     const {
@@ -40,7 +49,7 @@ export default function Home() {
 
   if (isLoading) return <p>Loading...</p>;
   return (
-    <div className="w-fit h-fit pb-4 bg-gray-200">
+    <div className="min-h-screen w-full pb-4 bg-gray-200">
       <nav className="bg-white p-4 flex flex-col items-center shadow">
         <p className="font-medium text-3xl">Therapy CRM</p>
         <p className="font-normal text-gray-500">Patient Dashboard</p>
@@ -52,7 +61,7 @@ export default function Home() {
               <Users size={48} />
               <div>
                 <p className="text-2xl text-gray-500">Total Pasien</p>
-                <p className="text-3xl font-medium">42</p>
+                <p className="text-3xl font-medium">{patients.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -80,102 +89,34 @@ export default function Home() {
         </div>
         <div className="mt-8">
           <div className="grid grid-cols-3 gap-4">
-            <Card className="hover:shadow-md">
-              <CardContent>
-                <p className="text-2xl font-medium">Sarah Johnson</p>
-                <p className="text-gray-500">sarahjohnson@gmail.com</p>
+            {patients.map((patient) => {
+              return (
+                <Card className="hover:shadow-md" key={patient.id}>
+                  <CardContent>
+                    <p className="text-2xl font-medium">{patient.name}</p>
+                    <p className="text-gray-500">{patient.email}</p>
 
-                <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
-                  <p className="p-2 text-green-500">
-                    Current well being: Excellent
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <Clock size={12} />
-                  <p>2 days since last respond</p>
-                </div>
-                <div className="mt-2">
-                  <p>
-                    Making Excellent Progress with anxiety management issues
-                  </p>
-                </div>
-                <Button variant={'outline'} className="mt-2">
-                  Contact
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md">
-              <CardContent>
-                <p className="text-2xl font-medium">Sarah Johnson</p>
-                <p className="text-gray-500">sarahjohnson@gmail.com</p>
-
-                <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
-                  <p className="p-2 text-green-500">
-                    Current well being: Excellent
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <Clock size={12} />
-                  <p>2 days since last respond</p>
-                </div>
-                <div className="mt-2">
-                  <p>
-                    Making Excellent Progress with anxiety management issues
-                  </p>
-                </div>
-                <Button variant={'outline'} className="mt-2">
-                  Contact
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md">
-              <CardContent>
-                <p className="text-2xl font-medium">Sarah Johnson</p>
-                <p className="text-gray-500">sarahjohnson@gmail.com</p>
-
-                <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
-                  <p className="p-2 text-green-500">
-                    Current well being: Excellent
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <Clock size={12} />
-                  <p>2 days since last respond</p>
-                </div>
-                <div className="mt-2">
-                  <p>
-                    Making Excellent Progress with anxiety management issues
-                  </p>
-                </div>
-                <Button variant={'outline'} className="mt-2">
-                  Contact
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md">
-              <CardContent>
-                <p className="text-2xl font-medium">Sarah Johnson</p>
-                <p className="text-gray-500">sarahjohnson@gmail.com</p>
-
-                <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
-                  <p className="p-2 text-green-500">
-                    Current well being: Excellent
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <Clock size={12} />
-                  <p>2 days since last respond</p>
-                </div>
-                <div className="mt-2">
-                  <p>
-                    Making Excellent Progress with anxiety management issues
-                  </p>
-                </div>
-                <Button variant={'outline'} className="mt-2">
-                  Contact
-                </Button>
-              </CardContent>
-            </Card>
+                    <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
+                      <p className="p-2 text-green-500">
+                        Current well being: Excellent
+                      </p>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                      <Clock size={12} />
+                      <p>2 days since last respond</p>
+                    </div>
+                    <div className="mt-2">
+                      <p>
+                        Making Excellent Progress with anxiety management issues
+                      </p>
+                    </div>
+                    <Button variant={'outline'} className="mt-2">
+                      Contact
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>
