@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Users, Mail, TriangleAlert, Clock } from 'lucide-react';
+import { Users, Mail, TriangleAlert, Clock, LogOut } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -59,9 +59,17 @@ export default function Home() {
   if (isLoading) return <p>Loading...</p>;
   return (
     <div className="min-h-screen w-full pb-4 bg-gray-200">
-      <nav className="bg-white p-4 flex flex-col items-center shadow">
-        <p className="font-medium text-3xl">Therapy CRM</p>
-        <p className="font-normal text-gray-500">Patient Dashboard</p>
+      <nav className="bg-white p-7 flex items-center justify-between relative">
+        {/* Centered title container */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+          <p className="font-medium text-3xl">Therapy CRM</p>
+          <p className="font-normal text-gray-500">Patient Dashboard</p>
+        </div>
+        {/* Empty div to balance flex space */}
+        <div className="w-6" />{' '}
+        {/* This can match the width of the LogOut icon */}
+        {/* Log out icon on the right */}
+        <LogOut className="cursor-pointer" onClick={logOut} />
       </nav>
       <div className="mx-16 mt-8">
         <div className="grid grid-cols-3 gap-4">
