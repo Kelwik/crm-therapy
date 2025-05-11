@@ -26,6 +26,15 @@ export default function Home() {
     checkUser();
     getPatients();
   }, []);
+  function getDaysSinceResponse(lastResponseDate) {
+    if (!lastResponseDate) return 'No response';
+    const today = new Date();
+    const responseDate = new Date(lastResponseDate);
+    const diffInMs = today - responseDate;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    if (diffInDays === 0) return 'Today';
+    return `${diffInDays} hari yang lalu`;
+  }
 
   async function getPatients() {
     const res = await fetch('/api/patients');
@@ -103,7 +112,7 @@ export default function Home() {
                     </div>
                     <div className="flex flex-row items-center gap-2">
                       <Clock size={12} />
-                      <p>2 days since last respond</p>
+                      <p>{getDaysSinceResponse(patient.last_response_date)}</p>
                     </div>
                     <div className="mt-2">
                       <p>
