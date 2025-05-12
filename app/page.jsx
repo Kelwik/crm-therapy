@@ -49,6 +49,7 @@ export default function Home() {
   const [newPatientName, setNewPatientName] = useState('');
   const [newPatientEmail, setNewPatientEmail] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -115,8 +116,13 @@ export default function Home() {
     redirect('/login');
   }
 
-  if (isLoading)
-    return <p className="text-center text-gray-500 mt-10">Loading...</p>;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-gray-100 font-sans">
@@ -126,15 +132,62 @@ export default function Home() {
           <h1 className="font-semibold text-2xl text-gray-800">Therapy CRM</h1>
           <p className="text-sm text-gray-500">Patient Dashboard</p>
         </div>
-        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-          <LogOut
-            className="cursor-pointer text-gray-600 hover:text-blue-600"
-            onClick={logOut}
-          />
-        </motion.div>
+        <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+          <DialogTrigger asChild>
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <LogOut
+                className="cursor-pointer text-gray-600 hover:text-blue-600"
+                aria-label="Open logout confirmation"
+                onClick={() => setIsLogoutDialogOpen(true)}
+              />
+            </motion.div>
+          </DialogTrigger>
+          <AnimatePresence>
+            {isLogoutDialogOpen && (
+              <DialogContent className="sm:max-w-md bg-white rounded-2xl shadow-xl">
+                <motion.div
+                  variants={dialogVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold text-gray-800">
+                      Confirm Logout
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-500">
+                      Are you sure you want to log out? You will need to log in
+                      again to access the dashboard.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="mt-4">
+                    <Button
+                      variant="outline"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full px-6 cursor-pointer"
+                      onClick={() => setIsLogoutDialogOpen(false)}
+                      aria-label="Cancel logout"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer"
+                      onClick={() => {
+                        setIsLogoutDialogOpen(false);
+                        logOut();
+                      }}
+                      aria-label="Confirm logout"
+                    >
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </motion.div>
+              </DialogContent>
+            )}
+          </AnimatePresence>
+        </Dialog>
       </nav>
 
-      {/* Main Content */}
+      {/* huitMain Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -174,7 +227,7 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-gray-800">Patient List</h2>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer">
                 Add Patient
               </Button>
             </DialogTrigger>
@@ -220,7 +273,7 @@ export default function Home() {
                       <DialogFooter>
                         <Button
                           type="submit"
-                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer"
                         >
                           Save Patient
                         </Button>
@@ -261,15 +314,15 @@ export default function Home() {
                   <p className="text-sm text-gray-600 mt-2">
                     Making excellent progress with anxiety management.
                   </p>
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-col gap-2 mt-4">
                     <Button
                       variant="outline"
-                      className="w-1/2 border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full"
+                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full cursor-pointer"
                     >
                       Contact
                     </Button>
                     <Button
-                      className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer"
                       onClick={() => router.push(`/patient/${patient.id}`)}
                       aria-label={`View details for ${patient.name}`}
                     >
