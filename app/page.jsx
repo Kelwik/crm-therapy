@@ -51,12 +51,24 @@ export default function Home() {
   const [newPatientDate, setNewPatientDate] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [backupMessage, setBackupMessage] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     checkUser();
     getPatients();
   }, []);
+
+  async function triggerNodemailerEmails() {
+    try {
+      const response = await fetch('/api/send-email', { method: 'POST' });
+      const data = await response.json();
+      setBackupMessage(data.message || data.error);
+      console.log(data.message);
+    } catch (err) {
+      setBackupMessage('Error triggering Nodemailer emails');
+    }
+  }
 
   function getDaysSinceResponse(lastResponseDate) {
     if (!lastResponseDate) return 'No response';
@@ -235,6 +247,12 @@ export default function Home() {
         {/* Patient List Header */}
         <div className="flex flex-row justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">Patient List</h2>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer"
+            onClick={triggerNodemailerEmails}
+          >
+            Check Email
+          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer">
