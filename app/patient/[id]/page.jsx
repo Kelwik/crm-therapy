@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { LogOut, ArrowLeft, Clock } from 'lucide-react';
+import { LogOut, ArrowLeft, Clock, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,7 @@ export default function PatientDetails({ params }) {
   const [patient, setPatient] = useState(null);
   const [responses, setResponses] = useState([]);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const router = useRouter();
   const { id } = React.use(params);
 
@@ -74,6 +75,27 @@ export default function PatientDetails({ params }) {
     router.push('/login');
   }
 
+  async function deleteUser(e) {
+    e.preventDefault();
+    try {
+      const response = await fetch(`/api/patients?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setIsDeleteDialogOpen(false);
+        router.push('/');
+      } else {
+        console.error('Delete patient error:', await response.text());
+      }
+    } catch (error) {
+      console.error('Delete patient failed:', error);
+    }
+  }
+
   // Function to calculate days since last response
   function getDaysSinceResponse(lastResponseDate) {
     if (!lastResponseDate) return 'No response';
@@ -101,7 +123,7 @@ export default function PatientDetails({ params }) {
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Button
               variant="outline"
-              className="border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full flex items-center gap-2"
+              className="border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full flex items-center gap-2 cursor-pointer"
               onClick={() => router.push('/')}
               aria-label="Back to dashboard"
             >
@@ -111,7 +133,7 @@ export default function PatientDetails({ params }) {
           </motion.div>
           <div className="text-center">
             <h1 className="font-semibold text-2xl text-gray-800">
-              {patient.name}&apos;s Details
+              {patient.name}'s Details
             </h1>
             <p className="text-sm text-gray-500">Patient Profile</p>
           </div>
@@ -147,14 +169,14 @@ export default function PatientDetails({ params }) {
                   <DialogFooter className="mt-4">
                     <Button
                       variant="outline"
-                      className="border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full px-6"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full px-6 cursor-pointer"
                       onClick={() => setIsLogoutDialogOpen(false)}
                       aria-label="Cancel logout"
                     >
                       Cancel
                     </Button>
                     <Button
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 cursor-pointer"
                       onClick={() => {
                         setIsLogoutDialogOpen(false);
                         logOut();
@@ -181,7 +203,66 @@ export default function PatientDetails({ params }) {
           whileHover="hover"
         >
           <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden mb-8">
-            <CardContent className="p-6">
+            <CardContent className="p-6 relative">
+              <div className="absolute top-6 right-6">
+                <Dialog
+                  open={isDeleteDialogOpen}
+                  onOpenChange={setIsDeleteDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Trash2
+                        className="cursor-pointer text-gray-600 hover:text-red-600"
+                        size={20}
+                        aria-label="Open delete patient confirmation"
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                      />
+                    </motion.div>
+                  </DialogTrigger>
+                  <AnimatePresence>
+                    {isDeleteDialogOpen && (
+                      <DialogContent className="sm:max-w-md bg-white rounded-2xl shadow-xl">
+                        <motion.div
+                          variants={dialogVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                        >
+                          <DialogHeader>
+                            <DialogTitle className="text-xl font-semibold text-gray-800">
+                              Confirm Delete
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-500">
+                              Are you sure you want to delete {patient.name}?
+                              This action cannot be undone.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter className="mt-4">
+                            <Button
+                              variant="outline"
+                              className="border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full px-6 cursor-pointer"
+                              onClick={() => setIsDeleteDialogOpen(false)}
+                              aria-label="Cancel delete"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-full px-6 cursor-pointer"
+                              onClick={(e) => deleteUser(e)}
+                              aria-label="Confirm delete"
+                            >
+                              Confirm
+                            </Button>
+                          </DialogFooter>
+                        </motion.div>
+                      </DialogContent>
+                    )}
+                  </AnimatePresence>
+                </Dialog>
+              </div>
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Patient Information
               </h2>
