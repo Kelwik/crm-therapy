@@ -12,6 +12,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Users, Mail, TriangleAlert, Clock, LogOut } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -21,6 +32,9 @@ const supabase = createClient(
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [patients, setPatients] = useState([]);
+  const [newPatientName, setNewPatientName] = useState('');
+  const [newPatientEmail, setNewPatientEmail] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -41,6 +55,36 @@ export default function Home() {
     const data = await res.json();
     console.log(data);
     setPatients(data);
+  }
+
+  async function addPatient(e) {
+    e.preventDefault();
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch('/api/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ newPatientName, newPatientEmail }),
+      });
+
+      if (response.ok) {
+        setNewPatientName('');
+        setNewPatientEmail('');
+        getPatients();
+        setIsDialogOpen(false);
+      } else {
+        console.error('Add patient error:', await response.text());
+      }
+    } catch (error) {
+      console.error('Add patient failed:', error);
+    }
   }
 
   async function checkUser() {
@@ -101,8 +145,47 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-row justify-between">
           <p className="text-gray-900 font-medium text-2xl">List Pasien</p>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">Edit Profile</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit profile</DialogTitle>
+                <DialogDescription>
+                  Make changes to your profile here. Click save when you're
+                  done.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label>Name</Label>
+                  <Input
+                    value={newPatientName}
+                    onChange={(e) => setNewPatientName(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="username" className="text-right">
+                    Email
+                  </Label>
+                  <Input
+                    value={newPatientEmail}
+                    onChange={(e) => setNewPatientEmail(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" onClick={(e) => addPatient(e)}>
+                  Save changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="mt-8">
           <div className="grid grid-cols-3 gap-4">

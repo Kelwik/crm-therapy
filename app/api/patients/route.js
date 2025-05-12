@@ -16,7 +16,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { name, email } = await request.json();
+  const { newPatientName: name, newPatientEmail: email } = await request.json();
 
   if (!name || !email) {
     return NextResponse.json(
