@@ -35,3 +35,17 @@ export async function POST(request) {
 
   return NextResponse.json({ message: 'Patient added' }, { status: 200 });
 }
+
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  const { error } = id;
+  await supabaseAdmin.from('patients').delete().eq('id', id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ message: 'Patient Deleted' }, { status: 200 });
+}
