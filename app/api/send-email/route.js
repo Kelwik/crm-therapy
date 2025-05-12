@@ -62,7 +62,7 @@ export async function POST() {
       }
 
       // Send email
-      const formUrl = `http://localhost:3000/form/${token}`; // Replace with Vercel URL in production
+      const formUrl = `https://crm-therapy.vercel.app/form/${token}`; // Replace with Vercel URL in production
       const mailOptions = {
         from: '"CRM Therapy" <crm.therapy.test@gmail.com>',
         to: patient.email,
