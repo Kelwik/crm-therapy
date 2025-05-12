@@ -1,6 +1,5 @@
 'use client';
 import { createClient } from '@supabase/supabase-js';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -23,11 +22,26 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
+// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
+
+// Animation variants for cards and dialog
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  hover: { scale: 1.03, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' },
+};
+
+const dialogVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
+};
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -35,11 +49,13 @@ export default function Home() {
   const [newPatientName, setNewPatientName] = useState('');
   const [newPatientEmail, setNewPatientEmail] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     checkUser();
     getPatients();
   }, []);
+
   function getDaysSinceResponse(lastResponseDate) {
     if (!lastResponseDate) return 'No response';
     const today = new Date();
@@ -47,13 +63,12 @@ export default function Home() {
     const diffInMs = today - responseDate;
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     if (diffInDays === 0) return 'Today';
-    return `${diffInDays} hari yang lalu`;
+    return `${diffInDays} days ago`;
   }
 
   async function getPatients() {
     const res = await fetch('/api/patients');
     const data = await res.json();
-    console.log(data);
     setPatients(data);
   }
 
@@ -100,124 +115,171 @@ export default function Home() {
     redirect('/login');
   }
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return <p className="text-center text-gray-500 mt-10">Loading...</p>;
+
   return (
-    <div className="min-h-screen w-full pb-4 bg-gray-200">
-      <nav className="bg-white p-7 flex items-center justify-between relative">
-        {/* Centered title container */}
+    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-gray-100 font-sans">
+      {/* Navbar */}
+      <nav className="bg-white p-6 flex items-center justify-between shadow-sm sticky top-0 z-10">
         <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-          <p className="font-medium text-3xl">Therapy CRM</p>
-          <p className="font-normal text-gray-500">Patient Dashboard</p>
+          <h1 className="font-semibold text-2xl text-gray-800">Therapy CRM</h1>
+          <p className="text-sm text-gray-500">Patient Dashboard</p>
         </div>
-        {/* Empty div to balance flex space */}
-        <div className="w-6" />{' '}
-        {/* This can match the width of the LogOut icon */}
-        {/* Log out icon on the right */}
-        <LogOut className="cursor-pointer" onClick={logOut} />
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <LogOut
+            className="cursor-pointer text-gray-600 hover:text-blue-600"
+            onClick={logOut}
+          />
+        </motion.div>
       </nav>
-      <div className="mx-16 mt-8">
-        <div className="grid grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="flex flex-row gap-6 items-center">
-              <Users size={48} />
-              <div>
-                <p className="text-2xl text-gray-500">Total Pasien</p>
-                <p className="text-3xl font-medium">{patients.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row gap-6 items-center">
-              <Mail size={48} />
-              <div>
-                <p className="text-2xl text-gray-500">Email Belum Direspons</p>
-                <p className="text-3xl font-medium">42</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex flex-row gap-6 items-center">
-              <TriangleAlert size={48} />
-              <div>
-                <p className="text-2xl text-gray-500">Pasien Butuh Follow Up</p>
-                <p className="text-3xl font-medium">42</p>
-              </div>
-            </CardContent>
-          </Card>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[
+            { icon: Users, title: 'Total Patients', value: patients.length },
+            { icon: Mail, title: 'Unread Emails', value: 42 },
+            {
+              icon: TriangleAlert,
+              title: 'Patients Needing Follow-Up',
+              value: 42,
+            },
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <stat.icon className="text-blue-500" size={40} />
+                  <div>
+                    <p className="text-lg text-gray-600">{stat.title}</p>
+                    <p className="text-3xl font-semibold text-gray-800">
+                      {stat.value}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
-        <div className="mt-8 flex flex-row justify-between">
-          <p className="text-gray-900 font-medium text-2xl">List Pasien</p>
+
+        {/* Patient List Header */}
+        <div className="flex flex-row justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">Patient List</h2>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">Edit Profile</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
+                Add Patient
+              </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
-                <DialogDescription>
-                  Make changes to your profile here. Click save when you're
-                  done.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label>Name</Label>
-                  <Input
-                    value={newPatientName}
-                    onChange={(e) => setNewPatientName(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="username" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    value={newPatientEmail}
-                    onChange={(e) => setNewPatientEmail(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" onClick={(e) => addPatient(e)}>
-                  Save changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
+            <AnimatePresence>
+              {isDialogOpen && (
+                <DialogContent className="sm:max-w-md bg-white rounded-2xl shadow-xl">
+                  <motion.div
+                    variants={dialogVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-semibold text-gray-800">
+                        Add New Patient
+                      </DialogTitle>
+                      <DialogDescription className="text-gray-500">
+                        Enter patient details below. Click save to add.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={addPatient}>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label className="text-gray-700">Name</Label>
+                          <Input
+                            value={newPatientName}
+                            onChange={(e) => setNewPatientName(e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                            placeholder="Enter patient name"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-gray-700">Email</Label>
+                          <Input
+                            value={newPatientEmail}
+                            onChange={(e) => setNewPatientEmail(e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                            placeholder="Enter patient email"
+                            type="email"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                        >
+                          Save Patient
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </motion.div>
+                </DialogContent>
+              )}
+            </AnimatePresence>
           </Dialog>
         </div>
-        <div className="mt-8">
-          <div className="grid grid-cols-3 gap-4">
-            {patients.map((patient) => {
-              return (
-                <Card className="hover:shadow-md" key={patient.id}>
-                  <CardContent>
-                    <p className="text-2xl font-medium">{patient.name}</p>
-                    <p className="text-gray-500">{patient.email}</p>
 
-                    <div className="bg-lime-200 w-fit h-fit rounded-3xl my-2">
-                      <p className="p-2 text-green-500">
-                        Current well being: Excellent
-                      </p>
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                      <Clock size={12} />
-                      <p>{getDaysSinceResponse(patient.last_response_date)}</p>
-                    </div>
-                    <div className="mt-2">
-                      <p>
-                        Making Excellent Progress with anxiety management issues
-                      </p>
-                    </div>
-                    <Button variant={'outline'} className="mt-2">
+        {/* Patient Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {patients.map((patient) => (
+            <motion.div
+              key={patient.id}
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    {patient.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">{patient.email}</p>
+                  <div className="bg-green-100 w-fit rounded-full my-3 px-3 py-1">
+                    <p className="text-sm text-green-700">
+                      Well-being: Excellent
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Clock size={14} />
+                    <p>{getDaysSinceResponse(patient.last_response_date)}</p>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Making excellent progress with anxiety management.
+                  </p>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      className="w-1/2 border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full"
+                    >
                       Contact
                     </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    <Button
+                      className="w-1/2 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                      onClick={() => router.push(`/patient/${patient.id}`)}
+                      aria-label={`View details for ${patient.name}`}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
