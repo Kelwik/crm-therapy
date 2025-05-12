@@ -16,7 +16,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { newPatientName: name, newPatientEmail: email } = await request.json();
+  const {
+    newPatientName: name,
+    newPatientEmail: email,
+    date: last_response_date,
+  } = await request.json();
 
   if (!name || !email) {
     return NextResponse.json(
@@ -27,7 +31,7 @@ export async function POST(request) {
 
   const { error } = await supabaseAdmin
     .from('patients')
-    .insert([{ name, email }]);
+    .insert([{ name, email, last_response_date }]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

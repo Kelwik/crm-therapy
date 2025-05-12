@@ -48,6 +48,7 @@ export default function Home() {
   const [patients, setPatients] = useState([]);
   const [newPatientName, setNewPatientName] = useState('');
   const [newPatientEmail, setNewPatientEmail] = useState('');
+  const [newPatientDate, setNewPatientDate] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const router = useRouter();
@@ -81,18 +82,27 @@ export default function Home() {
       } = await supabase.auth.getSession();
       const token = session?.access_token;
 
+      const timestampz = newPatientDate
+        ? new Date(newPatientDate).toISOString()
+        : null;
+
       const response = await fetch('/api/patients', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ newPatientName, newPatientEmail }),
+        body: JSON.stringify({
+          newPatientName,
+          newPatientEmail,
+          date: timestampz,
+        }),
       });
 
       if (response.ok) {
         setNewPatientName('');
         setNewPatientEmail('');
+        setNewPatientDate('');
         getPatients();
         setIsDialogOpen(false);
       } else {
@@ -187,7 +197,7 @@ export default function Home() {
         </Dialog>
       </nav>
 
-      {/* huitMain Content */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -267,6 +277,16 @@ export default function Home() {
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                             placeholder="Enter patient email"
                             type="email"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-gray-700">Last Response</Label>
+                          <Input
+                            type="date"
+                            value={newPatientDate}
+                            onChange={(e) => setNewPatientDate(e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                            placeholder="Select date"
                           />
                         </div>
                       </div>
