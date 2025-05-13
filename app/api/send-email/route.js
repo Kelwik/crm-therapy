@@ -12,18 +12,36 @@ export async function POST() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Get patients with no unused tokens
-    const { data: patients, error } = await supabase
+    // Step 1: Get patient IDs with unused tokens
+    const { data: unusedTokens, error: tokenError } = await supabase
+      .from('tokens')
+      .select('patient_id')
+      .eq('used', false);
+
+    if (tokenError) {
+      console.error('Error fetching unused tokens:', tokenError);
+      return NextResponse.json(
+        { error: 'Failed to fetch tokens', details: tokenError.message },
+        { status: 500 }
+      );
+    }
+
+    // Extract patient IDs with unused tokens
+    const excludedPatientIds = unusedTokens.map((token) => token.patient_id);
+
+    // Step 2: Fetch patients, excluding those with unused tokens
+    let query = supabase
       .from('patients')
       .select('id, name, email, last_response_date')
       .or(
         `last_response_date.is.null,last_response_date.lte.${sevenDaysAgo.toISOString()}`
-      )
-      .not(
-        'id',
-        'in',
-        supabase.from('tokens').select('patient_id').eq('used', false)
       );
+
+    if (excludedPatientIds.length > 0) {
+      query = query.not('id', 'in', `(${excludedPatientIds.join(',')})`);
+    }
+
+    const { data: patients, error } = await query;
 
     if (error) {
       console.error('Error fetching patients:', error);
