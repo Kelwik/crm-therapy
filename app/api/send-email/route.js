@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase';
 
