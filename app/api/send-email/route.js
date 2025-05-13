@@ -1,20 +1,28 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { supabaseAdmin } from '@/lib/supabase';
 
-// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST() {
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Query patients
-    const { data: patients, error } = await supabaseAdmin
+    // Get patients with no unused tokens
+    const { data: patients, error } = await supabase
       .from('patients')
       .select('id, name, email, last_response_date')
       .or(
         `last_response_date.is.null,last_response_date.lte.${sevenDaysAgo.toISOString()}`
+      )
+      .not(
+        'id',
+        'in',
+        supabase.from('tokens').select('patient_id').eq('used', false)
       );
 
     if (error) {
@@ -33,12 +41,11 @@ export async function POST() {
       );
     }
 
-    // Set up Nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: 'crm.therapy.test@gmail.com',
-        pass: process.env.GMAIL_APP_PASSWORD, // Use App Password
+        pass: process.env.GMAIL_APP_PASSWORD,
       },
     });
 
@@ -46,10 +53,9 @@ export async function POST() {
     for (const patient of patients) {
       const token = crypto.randomUUID();
 
-      // Insert token
-      const { error: tokenError } = await supabaseAdmin
+      const { error: tokenError } = await supabase
         .from('tokens')
-        .insert([{ patient_id: patient.id, token }]);
+        .insert([{ patient_id: patient.id, token, used: false }]);
       if (tokenError) {
         console.error(
           'Error creating token for patient',
@@ -60,8 +66,7 @@ export async function POST() {
         continue;
       }
 
-      // Send email
-      const formUrl = `https://crm-therapy.vercel.app/form/${token}`; // Replace with Vercel URL in production
+      const formUrl = `https://crm-therapy-d6wks3bkj-alwikasim456-gmailcoms-projects.vercel.app/form/${token}`;
       const mailOptions = {
         from: '"CRM Therapy" <crm.therapy.test@gmail.com>',
         to: patient.email,
@@ -73,7 +78,7 @@ export async function POST() {
           <p><a href="${formUrl}">Complete the Form</a></p>
           <p>If you have any questions, reply to this email.</p>
           <p>Best regards,<br>CRM Therapy Team</p>
-          <p><small>If you no longer wish to receive these emails, <a href="http://localhost:3000/unsubscribe">unsubscribe here</a>.</small></p>
+          <p><small>If you no longer wish to receive these emails, <a href="https://crm-therapy-d6wks3bkj-alwikasim456-gmailcoms-projects.vercel.app/unsubscribe">unsubscribe here</a>.</small></p>
         `,
       };
 
