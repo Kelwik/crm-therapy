@@ -52,11 +52,15 @@ export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [backupMessage, setBackupMessage] = useState('');
+  const [unresponseEmail, setUnresponseEmail] = useState(0);
+  const [patientNeedAttention, setPatientNeedAttention] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
     checkUser();
     getPatients();
+    getUnreads();
+    getAttentionPatient();
   }, []);
 
   async function triggerNodemailerEmails() {
@@ -78,6 +82,27 @@ export default function Home() {
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
     if (diffInDays === 0) return 'Today';
     return `${diffInDays} days ago`;
+  }
+
+  async function getUnreads() {
+    const { data, error } = await supabase
+      .from('tokens')
+      .select('*')
+      .eq('used', false);
+    if (error) console.log(error);
+    else {
+      console.log(data);
+      setUnresponseEmail(data.length);
+    }
+  }
+
+  async function getAttentionPatient() {
+    const { data, error } = await supabase
+      .from('patients')
+      .select('id,well_being_score')
+      .lt('well_being_score', 4);
+
+    setPatientNeedAttention(data.length);
   }
 
   async function getPatients() {
@@ -215,11 +240,15 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {[
             { icon: Users, title: 'Total Patients', value: patients.length },
-            { icon: Mail, title: 'Unread Emails', value: 42 },
+            {
+              icon: Mail,
+              title: 'Unread Emails',
+              value: unresponseEmail ? unresponseEmail : 0,
+            },
             {
               icon: TriangleAlert,
               title: 'Patients Needing Follow-Up',
-              value: 42,
+              value: patientNeedAttention,
             },
           ].map((stat, index) => (
             <motion.div
@@ -340,11 +369,31 @@ export default function Home() {
                     {patient.name}
                   </h3>
                   <p className="text-sm text-gray-500">{patient.email}</p>
-                  <div className="bg-green-100 w-fit rounded-full my-3 px-3 py-1">
-                    <p className="text-sm text-green-700">
+                  {/* <p className="text-sm text-green-700">
                       Well-being: Excellent
-                    </p>
-                  </div>
+                    </p> */}
+                  {patient.well_being_score > 7 && (
+                    <div className="bg-green-100 w-fit rounded-full my-3 px-3 py-1">
+                      <p className="text-sm text-green-700">
+                        Well-being: Excellent
+                      </p>
+                    </div>
+                  )}
+                  {patient.well_being_score > 3 &&
+                    patient.well_being_score < 8 && (
+                      <div className="bg-yellow-100 w-fit rounded-full my-3 px-3 py-1">
+                        <p className="text-sm text-yellow-700">
+                          Well-being: Moderate
+                        </p>
+                      </div>
+                    )}
+                  {patient.well_being_score < 4 && (
+                    <div className="bg-red-100 w-fit rounded-full my-3 px-3 py-1">
+                      <p className="text-sm text-red-700">
+                        Well-being: Need Attention
+                      </p>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Clock size={14} />
                     <p>{getDaysSinceResponse(patient.last_response_date)}</p>
