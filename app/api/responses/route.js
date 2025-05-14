@@ -13,12 +13,13 @@ export async function GET(request) {
   }
 
   const { data, error } = await supabaseAdmin
-    .from('responses')
-    .select('*')
+    .from('form_submissions')
+    .select('id, offline_session_requested, response_data, submitted_at')
     .eq('patient_id', patient_id)
     .order('submitted_at', { ascending: false });
 
   if (error) {
+    console.error('Error fetching submissions:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
