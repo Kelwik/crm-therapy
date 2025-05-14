@@ -121,7 +121,6 @@ export default function PatientForm({ params }) {
       }
 
       setSubmitted(true);
-      setTimeout(() => router.push('/'), 2000);
     } catch (err) {
       setError(err.message);
       console.error('Form submission error:', err);
@@ -184,12 +183,6 @@ export default function PatientForm({ params }) {
                 Your response has been submitted successfully.
               </p>
               {warning && <p className="text-yellow-600 mb-4">{warning}</p>}
-              <Button
-                onClick={() => router.push('/')}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-              >
-                Return to Home
-              </Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -202,17 +195,6 @@ export default function PatientForm({ params }) {
       {/* Navbar */}
       <nav className="bg-white p-6 flex items-center justify-between shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button
-              variant="outline"
-              className="border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full flex items-center gap-2 cursor-pointer"
-              onClick={() => router.push('/')}
-              aria-label="Back to home"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </Button>
-          </motion.div>
           <div className="text-center">
             <h1 className="font-semibold text-2xl text-gray-800">
               Well-Being Form

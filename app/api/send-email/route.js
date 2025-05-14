@@ -84,7 +84,7 @@ export async function POST() {
         continue;
       }
 
-      const formUrl = `https://crm-therapy-d6wks3bkj-alwikasim456-gmailcoms-projects.vercel.app/form/${token}`;
+      const formUrl = `https://crm-therapy.vercel.app/form/${token}`;
       const mailOptions = {
         from: '"CRM Therapy" <crm.therapy.test@gmail.com>',
         to: patient.email,
