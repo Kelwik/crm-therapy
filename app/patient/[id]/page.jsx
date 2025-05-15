@@ -220,14 +220,18 @@ export default function PatientDetails({ params }) {
     }
 
     try {
-      const { error: sessionError } = await supabase
+      // Insert session
+      const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
         .insert({
           patient_id: id,
           session_date: sessionDateTime.toISOString(),
-        });
+        })
+        .select('id')
+        .single();
       if (sessionError) throw sessionError;
 
+      // Fetch patient data
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('name, email')
@@ -235,6 +239,7 @@ export default function PatientDetails({ params }) {
         .single();
       if (patientError) throw patientError;
 
+      // Send notification with .ics
       const response = await fetch('/api/notify-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -246,23 +251,26 @@ export default function PatientDetails({ params }) {
         }),
       });
 
+      const result = await response.json();
       if (!response.ok) {
-        setMessage('Session assigned but email notification failed');
+        setMessage(
+          result.error || 'Session assigned but email notification failed'
+        );
         return;
       }
 
       setSessions([
         {
-          id: crypto.randomUUID(),
+          id: sessionData.id,
           session_date: sessionDateTime,
           created_at: new Date(),
         },
         ...sessions,
       ]);
       setSessionDate('');
-      setMessage('Session assigned and patient notified');
+      setMessage(result.message || 'Session assigned and patient notified');
     } catch (error) {
-      setMessage('Error assigning session');
+      setMessage('Error assigning session: ' + error.message);
       console.error('Assign session error:', error);
     }
   }
