@@ -54,6 +54,7 @@ export default function Home() {
   const [backupMessage, setBackupMessage] = useState('');
   const [unresponseEmail, setUnresponseEmail] = useState(0);
   const [patientNeedAttention, setPatientNeedAttention] = useState(0);
+  const [phoneNumber, setPhoneNumber] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export default function Home() {
           newPatientName,
           newPatientEmail,
           date: timestampz,
+          phoneNumber,
         }),
       });
 
@@ -140,7 +142,9 @@ export default function Home() {
         setNewPatientName('');
         setNewPatientEmail('');
         setNewPatientDate('');
+        setPhoneNumber(0);
         getPatients();
+
         setIsDialogOpen(false);
       } else {
         console.error('Add patient error:', await response.text());
@@ -335,6 +339,16 @@ export default function Home() {
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                             placeholder="Select date"
                           />
+                          <Label className="text-gray-700">
+                            Nomor telepon tanpa "0" diawal
+                          </Label>
+                          <Input
+                            type="number"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                            placeholder="Masukkan Nomor Telepon"
+                          />
                         </div>
                       </div>
                       <DialogFooter>
@@ -402,12 +416,18 @@ export default function Home() {
                     Making excellent progress with anxiety management.
                   </p>
                   <div className="flex flex-col gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full cursor-pointer"
+                    <a
+                      href={`https://wa.me/62${patient.phone_number}?text=${encodeURIComponent(`Hi ${patient.name}, Bagaimana kabar anda?`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      Contact
-                    </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full border-blue-500 text-blue-500 hover:bg-blue-50 rounded-full cursor-pointer"
+                      >
+                        Contact
+                      </Button>
+                    </a>
                     <Button
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer"
                       onClick={() => router.push(`/patient/${patient.id}`)}

@@ -20,9 +20,10 @@ export async function POST(request) {
     newPatientName: name,
     newPatientEmail: email,
     date: last_response_date,
+    phoneNumber: phone_number,
   } = await request.json();
 
-  if (!name || !email) {
+  if (!name || !email || !phone_number) {
     return NextResponse.json(
       { error: 'Name and email are required' },
       { status: 400 }
@@ -57,7 +58,7 @@ export async function POST(request) {
 
   const { error } = await supabaseAdmin
     .from('patients')
-    .insert([{ name, email, last_response_date }]);
+    .insert([{ name, email, last_response_date, phone_number }]);
 
   if (error) {
     console.error('Error adding patient:', error);
