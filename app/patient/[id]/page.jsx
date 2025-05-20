@@ -491,61 +491,63 @@ export default function PatientDetails({ params }) {
               </CardContent>
             </Card>
           </motion.div>
-          <motion.div
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover="hover"
-          >
-            <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  Update Well-Being Score (1–10)
-                </h2>
-                <Input
-                  type="number"
-                  value={score}
-                  onChange={(e) => setScore(e.target.value)}
-                  min="1"
-                  max="10"
-                  placeholder="Enter score"
-                  className="mb-4"
-                />
-                <Button
-                  onClick={handleUpdateScore}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-                >
-                  Update Score
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-          <motion.div
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileHover="hover"
-          >
-            <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  Assign Offline Session
-                </h2>
-                <Input
-                  type="datetime-local"
-                  value={sessionDate}
-                  onChange={(e) => setSessionDate(e.target.value)}
-                  className="mb-4"
-                />
-                <Button
-                  onClick={handleAssignSession}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-                >
-                  Assign Session
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
+          <div className="grid grid-cols-2 gap-2">
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Update Well-Being Score (1–10)
+                  </h2>
+                  <Input
+                    type="number"
+                    value={score}
+                    onChange={(e) => setScore(e.target.value)}
+                    min="1"
+                    max="10"
+                    placeholder="Enter score"
+                    className="mb-4"
+                  />
+                  <Button
+                    onClick={handleUpdateScore}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                  >
+                    Update Score
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    Assign Offline Session
+                  </h2>
+                  <Input
+                    type="datetime-local"
+                    value={sessionDate}
+                    onChange={(e) => setSessionDate(e.target.value)}
+                    className="mb-4"
+                  />
+                  <Button
+                    onClick={handleAssignSession}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
+                  >
+                    Assign Session
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
         </div>
 
         {/* Form Submissions Section */}
