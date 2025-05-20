@@ -54,7 +54,8 @@ export default function Home() {
   const [backupMessage, setBackupMessage] = useState('');
   const [unresponseEmail, setUnresponseEmail] = useState(0);
   const [patientNeedAttention, setPatientNeedAttention] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState(0);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [patientNotes, setPatientNotes] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function Home() {
     getPatients();
     getUnreads();
     getAttentionPatient();
+    getNotes();
   }, []);
 
   async function triggerNodemailerEmails() {
@@ -112,6 +114,16 @@ export default function Home() {
     setPatients(data);
   }
 
+  async function getNotes() {
+    const { data, error } = await supabase.rpc('get_latest_patient_notes');
+
+    if (error) {
+      console.error('Error fetching latest notes:', error);
+    } else {
+      console.log('Latest notes per patient:', data);
+      setPatientNotes(data);
+    }
+  }
   async function addPatient(e) {
     e.preventDefault();
     try {
@@ -413,7 +425,11 @@ export default function Home() {
                     <p>{getDaysSinceResponse(patient.last_response_date)}</p>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">
-                    Making excellent progress with anxiety management.
+                    {patientNotes.map((note) => {
+                      if (note.patient_id === patient.id) return note.note;
+                      else
+                        return 'Tidak ada catatan. Mohon masukkan catatan pada detail pasien';
+                    })}
                   </p>
                   <div className="flex flex-col gap-2 mt-4">
                     <a
