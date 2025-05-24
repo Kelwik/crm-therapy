@@ -21,7 +21,7 @@ const supabase = createClient(
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  hover: { scale: 1.03, boxShadow: '0 8px 20px rgba(0,0,0,0.1)' },
+  hover: { scale: 1.05, boxShadow: '0 10px 20px rgba(0,0,0,0.15)' },
 };
 
 export default function PatientForm({ params }) {
@@ -42,7 +42,7 @@ export default function PatientForm({ params }) {
     if (token) {
       validateToken();
     } else {
-      setError('No token provided');
+      setError('Tidak ada token yang diberikan');
       setIsLoading(false);
       setIsValidToken(false);
     }
@@ -76,7 +76,13 @@ export default function PatientForm({ params }) {
       setPatientName(patient.name);
       setIsValidToken(true);
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.message === 'Invalid token'
+          ? 'Token tidak valid'
+          : err.message === 'Token has already been used'
+            ? 'Token sudah digunakan'
+            : 'Pasien tidak ditemukan'
+      );
       setIsValidToken(false);
       console.error('Token validation error:', err);
     } finally {
@@ -91,12 +97,11 @@ export default function PatientForm({ params }) {
     setIsLoading(true);
 
     try {
-      // Validate mood and stress if provided
       if (mood && (isNaN(mood) || mood < 1 || mood > 5)) {
-        throw new Error('Mood must be between 1 and 5');
+        throw new Error('Mood harus antara 1 dan 5');
       }
       if (stress && (isNaN(stress) || stress < 1 || stress > 5)) {
-        throw new Error('Stress must be between 1 and 5');
+        throw new Error('Stres harus antara 1 dan 5');
       }
 
       const response = await fetch('/api/submit-form', {
@@ -113,11 +118,15 @@ export default function PatientForm({ params }) {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit form');
+        throw new Error(data.error || 'Gagal mengirimkan formulir');
       }
 
       if (data.warning) {
-        setWarning(data.warning);
+        setWarning(
+          data.warning === 'Patient not found'
+            ? 'Pasien tidak ditemukan'
+            : data.warning
+        );
       }
 
       setSubmitted(true);
@@ -131,216 +140,213 @@ export default function PatientForm({ params }) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-[#FFE4E1] to-[#FFD1CC]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-teal-500"></div>
       </div>
     );
   }
 
   if (!isValidToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-md w-full"
-        >
-          <Card className="bg-white border-none shadow-lg rounded-xl">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Error
-              </h2>
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button
-                onClick={() => router.push('/')}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6"
-              >
-                Return to Home
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE4E1] to-[#FFD1CC] flex items-center justify-center p-4">
+        <Card className="bg-gradient-to-br from-white to-[#E6FFFA] border-none shadow-xl rounded-2xl">
+          <CardContent className="p-10 text-center">
+            <h2 className="text-2xl font-semibold text-teal-800 mb-4">
+              Kesalahan
+            </h2>
+            <p className="text-red-600 text-base font-normal leading-relaxed mb-4">
+              {error}
+            </p>
+            <Button
+              onClick={() => router.push('/')}
+              className="bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 text-base font-medium"
+            >
+              Kembali ke Beranda
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-md w-full"
-        >
-          <Card className="bg-white border-none shadow-lg rounded-xl">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Thank You, {patientName}!
-              </h2>
-              <p className="text-green-600 mb-4">
-                Your response has been submitted successfully.
+      <div className="min-h-screen bg-gradient-to-br from-[#FFE4E1] to-[#FFD1CC] flex items-center justify-center p-4">
+        <Card className="bg-gradient-to-br from-white to-[#E6FFFA] border-none shadow-xl rounded-2xl">
+          <CardContent className="p-10 text-center">
+            <h2 className="text-2xl font-semibold text-teal-800 mb-4">
+              Terima Kasih, {patientName}!
+            </h2>
+            <p className="text-teal-600 text-base font-normal leading-relaxed mb-4">
+              Respons Anda telah berhasil dikirim.
+            </p>
+            {warning && (
+              <p className="text-yellow-600 text-base font-normal leading-relaxed mb-4">
+                {warning}
               </p>
-              {warning && <p className="text-yellow-600 mb-4">{warning}</p>}
-            </CardContent>
-          </Card>
-        </motion.div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-gray-100 font-sans">
-      {/* Navbar */}
-      <nav className="bg-white p-6 flex items-center justify-between shadow-sm sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <div className="text-center">
-            <h1 className="font-semibold text-2xl text-gray-800">
-              Well-Being Form
-            </h1>
-            <p className="text-sm text-gray-500">For {patientName}</p>
-          </div>
-        </div>
-      </nav>
-
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#FFE4E1] to-[#FFD1CC] font-poppins">
       {/* Main Content */}
-      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          whileHover="hover"
-        >
-          <Card className="bg-white border-none shadow-lg rounded-xl overflow-hidden">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                Well-Being Form for {patientName}
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Message */}
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-gray-700">
-                    How are you feeling? (Optional)
-                  </Label>
-                  <Textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Share your thoughts or updates..."
-                    className="w-full min-h-[100px]"
-                  />
-                </div>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Card className="bg-gradient-to-br from-white to-[#E6FFFA] border-none shadow-xl rounded-2xl overflow-hidden">
+          <CardContent className="p-10">
+            <h2 className="text-2xl font-semibold text-teal-800 mb-6">
+              Formulir Kesejahteraan untuk {patientName}
+            </h2>
+            <p className="text-teal-600 mb-8 text-base font-normal leading-relaxed">
+              Silakan isi formulir ini untuk berbagi bagaimana perasaan Anda
+              saat ini. Semua kolom bersifat opsional kecuali tombol kirim. Isi
+              sesuai kenyamanan Anda, dan informasi ini akan membantu terapis
+              Anda memberikan dukungan yang lebih baik.
+            </p>
+            <form onSubmit={handleSubmit} className="space-y-10">
+              {/* Message */}
+              <div className="space-y-4">
+                <Label
+                  htmlFor="message"
+                  className="text-teal-700 font-medium text-base"
+                >
+                  Bagaimana perasaan Anda? (Opsional)
+                </Label>
+                <p className="text-sm text-teal-600 font-normal leading-relaxed">
+                  Tulis apa saja yang ingin Anda bagikan, seperti suasana hati
+                  atau pengalaman terkini.
+                </p>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Bagikan pikiran atau pembaruan Anda..."
+                  className="w-full min-h-[150px] border-teal-300 focus:border-teal-500 focus:ring-teal-500 rounded-lg text-base font-normal"
+                />
+              </div>
 
-                {/* Mood Level */}
-                <div className="space-y-2">
-                  <Label className="text-gray-700">
-                    Mood (1 = Low, 5 = High, Optional)
-                  </Label>
-                  <RadioGroup
-                    name="mood"
-                    value={mood}
-                    onValueChange={(value) => setMood(parseInt(value))}
-                    className="flex gap-4 flex-wrap"
-                  >
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <div key={`mood-${value}`} className="flex items-center">
-                        <RadioGroupItem
-                          value={value.toString()}
-                          id={`mood-${value}`}
-                          className="sr-only"
-                        />
-                        <Label
-                          htmlFor={`mood-${value}`}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full border-2 cursor-pointer ${
-                            mood === value
-                              ? 'bg-blue-600 border-blue-600 text-white'
-                              : 'border-gray-300 text-gray-600 hover:bg-blue-50'
-                          }`}
-                        >
-                          {value}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                {/* Stress Level */}
-                <div className="space-y-2">
-                  <Label className="text-gray-700">
-                    Stress (1 = Low, 5 = High, Optional)
-                  </Label>
-                  <RadioGroup
-                    name="stress"
-                    value={stress}
-                    onValueChange={(value) => setStress(parseInt(value))}
-                    className="flex gap-4 flex-wrap"
-                  >
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <div
-                        key={`stress-${value}`}
-                        className="flex items-center"
+              {/* Mood Level */}
+              <div className="space-y-4">
+                <Label className="text-teal-700 font-medium text-base">
+                  Suasana Hati (1 = Rendah, 5 = Tinggi, Opsional)
+                </Label>
+                <p className="text-sm text-teal-600 font-normal leading-relaxed">
+                  Pilih angka yang mencerminkan suasana hati Anda saat ini, dari
+                  1 (sangat buruk) hingga 5 (sangat baik).
+                </p>
+                <RadioGroup
+                  name="mood"
+                  value={mood}
+                  onValueChange={(value) => setMood(parseInt(value))}
+                  className="flex gap-4 flex-wrap"
+                >
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <div key={`mood-${value}`} className="flex items-center">
+                      <RadioGroupItem
+                        value={value.toString()}
+                        id={`mood-${value}`}
+                        className="sr-only"
+                      />
+                      <Label
+                        htmlFor={`mood-${value}`}
+                        className={`w-12 h-12 flex items-center justify-center rounded-full border-2 cursor-pointer text-base font-medium ${
+                          mood === value
+                            ? 'bg-teal-500 border-teal-500 text-white'
+                            : 'border-teal-300 text-teal-600 hover:bg-teal-50'
+                        }`}
                       >
-                        <RadioGroupItem
-                          value={value.toString()}
-                          id={`stress-${value}`}
-                          className="sr-only"
-                        />
-                        <Label
-                          htmlFor={`stress-${value}`}
-                          className={`w-8 h-8 flex items-center justify-center rounded-full border-2 cursor-pointer ${
-                            stress === value
-                              ? 'bg-blue-600 border-blue-600 text-white'
-                              : 'border-gray-300 text-gray-600 hover:bg-blue-50'
-                          }`}
-                        >
-                          {value}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
+                        {value}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
 
-                {/* Offline Session */}
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="offlineSession"
-                    checked={offlineSession}
-                    onCheckedChange={setOfflineSession}
-                  />
+              {/* Stress Level */}
+              <div className="space-y-4">
+                <Label className="text-teal-700 font-medium text-base">
+                  Stres (1 = Rendah, 5 = Tinggi, Opsional)
+                </Label>
+                <p className="text-sm text-teal-600 font-normal leading-relaxed">
+                  Pilih angka yang mencerminkan tingkat stres Anda, dari 1
+                  (sangat rendah) hingga 5 (sangat tinggi).
+                </p>
+                <RadioGroup
+                  name="stress"
+                  value={stress}
+                  onValueChange={(value) => setStress(parseInt(value))}
+                  className="flex gap-4 flex-wrap"
+                >
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <div key={`stress-${value}`} className="flex items-center">
+                      <RadioGroupItem
+                        value={value.toString()}
+                        id={`stress-${value}`}
+                        className="sr-only"
+                      />
+                      <Label
+                        htmlFor={`stress-${value}`}
+                        className={`w-12 h-12 flex items-center justify-center rounded-full border-2 cursor-pointer text-base font-medium ${
+                          stress === value
+                            ? 'bg-teal-500 border-teal-500 text-white'
+                            : 'border-teal-300 text-teal-600 hover:bg-teal-50'
+                        }`}
+                      >
+                        {value}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Offline Session */}
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="offlineSession"
+                  checked={offlineSession}
+                  onCheckedChange={setOfflineSession}
+                />
+                <div>
                   <Label
                     htmlFor="offlineSession"
-                    className="text-gray-700 font-medium"
+                    className="text-teal-700 font-medium text-base"
                   >
-                    Request an offline session
+                    Minta Sesi Tatap Muka
                   </Label>
+                  <p className="text-sm text-teal-600 font-normal leading-relaxed">
+                    Centang jika Anda ingin menjadwalkan sesi langsung dengan
+                    terapis.
+                  </p>
                 </div>
+              </div>
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full py-2 flex items-center justify-center gap-2"
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full py-3 flex items-center justify-center gap-3 text-base font-medium"
+              >
+                {isLoading ? 'Mengirim...' : 'Kirim Respons'}
+                <Send size={16} />
+              </Button>
+            </form>
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  className="mt-6 text-red-600 text-center text-base font-normal leading-relaxed"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  {isLoading ? 'Submitting...' : 'Submit Response'}
-                  <Send size={16} />
-                </Button>
-              </form>
-              <AnimatePresence>
-                {error && (
-                  <motion.p
-                    className="mt-4 text-red-600 text-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    {error}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </CardContent>
-          </Card>
-        </motion.div>
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -5,14 +5,64 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
-  const { data, error } = id
-    ? await supabaseAdmin.from('patients').select('*').eq('id', id)
-    : await supabaseAdmin.from('patients').select('*');
+  try {
+    const query = id
+      ? supabaseAdmin
+          .from('patients')
+          .select(
+            `
+          id,
+          name,
+          email,
+          phone_number,
+          well_being_score,
+          last_response_date,
+          patient_notes (
+            note,
+            created_at
+          )
+        `
+          )
+          .eq('id', id)
+      : supabaseAdmin.from('patients').select(`
+          id,
+          name,
+          email,
+          phone_number,
+          well_being_score,
+          last_response_date,
+          patient_notes (
+            note,
+            created_at
+          )
+        `);
 
-  if (error) {
+    const { data, error } = await query
+      .order('created_at', { foreignTable: 'patient_notes', ascending: false })
+      .limit(1, { foreignTable: 'patient_notes' });
+
+    if (error) {
+      console.error('Fetch patients error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Transform data to include only the latest note
+    const patients = data.map((patient) => ({
+      id: patient.id,
+      name: patient.name,
+      email: patient.email,
+      phone_number: patient.phone_number,
+      well_being_score: patient.well_being_score,
+      last_response_date: patient.last_response_date,
+      latest_note:
+        patient.patient_notes.length > 0 ? patient.patient_notes[0].note : null,
+    }));
+
+    return NextResponse.json(patients); // Always return an array
+  } catch (error) {
+    console.error('API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json(data);
 }
 
 export async function POST(request) {
