@@ -60,7 +60,7 @@ function Login() {
         <Card className="bg-gradient-to-br from-white to-[#E6FFFA] border-none shadow-xl rounded-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold text-teal-800">
-              Login Admin
+              Login Dokter
             </CardTitle>
             <CardDescription className="text-base font-normal text-teal-600 leading-relaxed">
               Silakan masukkan email dan kata sandi untuk masuk
