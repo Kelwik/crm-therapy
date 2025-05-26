@@ -103,13 +103,13 @@ export async function POST(request) {
     } catch (emailError) {
       console.warn('Email sending failed:', emailError);
       return NextResponse.json(
-        { message: 'Session scheduled, but email sending failed' },
+        { message: 'Sesi ditetapkan tetapi notifikasi email gagal' },
         { status: 200 }
       );
     }
 
     return NextResponse.json(
-      { message: 'Session scheduled and patient notified' },
+      { message: 'Sesi berhasil ditetapkan dan pasien telah diberitahu' },
       { status: 200 }
     );
   } catch (error) {
